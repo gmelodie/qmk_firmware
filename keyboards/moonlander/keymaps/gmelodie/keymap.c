@@ -271,3 +271,17 @@ qk_tap_dance_action_t tap_dance_actions[] = {
         [DANCE_0] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_0, dance_0_finished, dance_0_reset),
         [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
 };
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case RCTL_T(KC_SLSH): // less when pressing slash
+        case LCTL_T(KC_Z): // less when pressing Z
+            return TAPPING_TERM - 200;
+        /* case LSFT_T(KC_V): // more when pressing V */
+        /* case LSFT_T(KC_M): // more when pressing M */
+        /*     return TAPPING_TERM - 20; */
+        default:
+            return TAPPING_TERM;
+    }
+}
+
