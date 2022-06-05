@@ -1,5 +1,6 @@
 #include QMK_KEYBOARD_H
 #include "version.h"
+#include "features/achordion.h"
 #include "keymap_german.h"
 #include "keymap_nordic.h"
 #include "keymap_french.h"
@@ -153,6 +154,7 @@ void rgb_matrix_indicators_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  if (!process_achordion(keycode, record)) { return false; }
   switch (keycode) {
     case BR_LSPO:
       perform_space_cadet(record, keycode, KC_LSFT, KC_LSFT, KC_9);
@@ -167,6 +169,10 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
   }
   return true;
+}
+
+void matrix_scan_user(void) {
+  achordion_task();
 }
 
 typedef struct {
@@ -272,16 +278,39 @@ qk_tap_dance_action_t tap_dance_actions[] = {
         [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
 };
 
-uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-        case RCTL_T(KC_SLSH): // less when pressing slash
-        case LCTL_T(KC_Z): // less when pressing Z
-            return TAPPING_TERM - 200;
-        /* case LSFT_T(KC_V): // more when pressing V */
-        /* case LSFT_T(KC_M): // more when pressing M */
-        /*     return TAPPING_TERM - 20; */
-        default:
-            return TAPPING_TERM;
-    }
-}
+/* uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) { */
+/*     switch (keycode) { */
+/*         case RCTL_T(KC_SLSH): // less when pressing slash */
+/*         case LCTL_T(KC_Z): // less when pressing Z */
+/*             return TAPPING_TERM - 200; */
+/*         /1* case LSFT_T(KC_V): // more when pressing V *1/ */
+/*         /1* case LSFT_T(KC_M): // more when pressing M *1/ */
+/*         /1*     return TAPPING_TERM - 20; *1/ */
+/*         default: */
+/*             return TAPPING_TERM; */
+/*     } */
+/* } */
 
+bool achordion_chord(uint16_t tap_hold_keycode,
+                     keyrecord_t* tap_hold_record,
+                     uint16_t other_keycode,
+                     keyrecord_t* other_record) {
+  // Exceptionally consider the following chords as holds, even though they
+  // are on the same hand in Dvorak.
+  switch (tap_hold_keycode) {
+      case LCTL_T(KC_Z):  // Ctrl+ W,R,T,A,C,V,D
+        switch (other_keycode) {
+            case KC_W:
+            case KC_R:
+            case KC_T:
+            case KC_A:
+            case KC_C:
+            case LSFT_T(KC_V):
+            case KC_D:
+                return true;
+        }
+  }
+
+  // Otherwise, follow the opposite hands rule.
+  return achordion_opposite_hands(tap_hold_record, other_record);
+}
