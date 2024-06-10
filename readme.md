@@ -1,4 +1,13 @@
-# ZSA's fork of QMK Firmware 
+# ZSA's fork of QMK Firmware
+
+## Gabe's Notes
+
+Compile and flash with
+```
+qmk compile -kb moonlander -km gmelodie && wally-cli moonlander_gmelodie.bin
+```
+
+---
 
 [![Current Version](https://img.shields.io/github/tag/ErgoDox-EZ/qmk_firmware.svg)](https://github.com/ErgoDox-EZ/qmk_firmware/tags)
 [![Build Status](https://travis-ci.org/ErgoDox-EZ/qmk_firmware.svg?branch=master)](https://travis-ci.org/ErgoDox-EZ/qmk_firmware)
