@@ -50,9 +50,12 @@
 
 enum custom_keycodes {
   RGB_SLD = ML_SAFE_RANGE,
+  ES_LSPO,
+  ES_RSPC,
   BR_LSPO,
   BR_RSPC,
 };
+
 
 
 enum tap_dance_codes {
@@ -73,7 +76,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_ESCAPE,      KC_F1,          KC_F2,          KC_F3,          KC_F4,          KC_F5,          KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_F6,          KC_F7,          KC_F8,          KC_F9,          KC_F10,         KC_F11,         
     KC_TRANSPARENT, KC_AT,          KC_CIRC,        KC_LCBR,        KC_RCBR,        KC_PIPE,        KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_AMPR,        KC_PERC,        KC_HASH,        KC_ASTR,        KC_TRANSPARENT, KC_F12,         
     KC_TRANSPARENT, KC_TILD,        KC_MINUS,       KC_LPRN,        KC_RPRN,        KC_GRAVE,       KC_TRANSPARENT,                                                                 KC_TRANSPARENT, KC_EQUAL,       KC_QUOTE,       KC_DQUO,        KC_PLUS,        KC_TRANSPARENT, KC_TRANSPARENT, 
-    KC_TRANSPARENT, KC_TRANSPARENT, KC_UNDS,        KC_LBRACKET,    KC_RBRACKET,    KC_TRANSPARENT,                                 KC_COLN,        KC_LABK,        KC_RABK,        KC_BSLASH,      KC_TRANSPARENT, KC_TRANSPARENT, 
+    KC_TRANSPARENT, KC_TRANSPARENT, KC_UNDS,        KC_LBRACKET,    KC_RBRACKET,    KC_TRANSPARENT,                                 KC_COLN,        KC_LABK,        KC_RABK,        KC_BSLASH,      ES_IQUE,        KC_TRANSPARENT, 
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                                                                                                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, 
     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
   ),
@@ -95,12 +98,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 };
 
-extern bool g_suspend_state;
+
+
 extern rgb_config_t rgb_matrix_config;
 
 void keyboard_post_init_user(void) {
   rgb_matrix_enable();
 }
+
 
 const uint8_t PROGMEM ledmap[][DRIVER_LED_TOTAL][3] = {
     [0] = { {0,255,255}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {227,243,197}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {14,255,255}, {130,125,136}, {130,125,136}, {130,125,136}, {227,243,197}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {14,255,255}, {130,125,136}, {86,255,255}, {130,125,136}, {86,255,255}, {130,125,136}, {0,255,255}, {14,255,255}, {130,125,136}, {0,255,255}, {130,125,136}, {14,255,255}, {130,125,136}, {130,125,136}, {130,125,136}, {227,243,197}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {227,243,197}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {130,125,136}, {14,255,255}, {130,125,136}, {86,255,255}, {130,125,136}, {86,255,255}, {14,255,255}, {172,255,255} },
@@ -131,7 +136,10 @@ void set_layer_color(int layer) {
 }
 
 void rgb_matrix_indicators_user(void) {
-  if (g_suspend_state || keyboard_config.disable_layer_led) { return; }
+  if (rawhid_state.rgb_control) {
+      return;
+  }
+  if (keyboard_config.disable_layer_led) { return; }
   switch (biton32(layer_state)) {
     case 0:
       set_layer_color(0);
@@ -154,20 +162,19 @@ void rgb_matrix_indicators_user(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
-    case BR_LSPO:
-      perform_space_cadet(record, keycode, KC_LSFT, KC_LSFT, KC_9);
-      return false;
-    case BR_RSPC:
-      perform_space_cadet(record, keycode, KC_LSFT, KC_LSFT, KC_0);
-      return false;
+
     case RGB_SLD:
-      if (record->event.pressed) {
-        rgblight_mode(1);
-      }
-      return false;
+        if (rawhid_state.rgb_control) {
+            return false;
+        }
+        if (record->event.pressed) {
+            rgblight_mode(1);
+        }
+        return false;
   }
   return true;
 }
+
 
 typedef struct {
     bool is_press_action;
@@ -219,7 +226,8 @@ void dance_0_finished(qk_tap_dance_state_t *state, void *user_data) {
     dance_state[0].step = dance_step(state);
     switch (dance_state[0].step) {
         case SINGLE_TAP: register_code16(KC_LEFT); break;
-        case DOUBLE_TAP: register_code16(KC_HOME); break;
+        case SINGLE_HOLD: register_code16(KC_HOME); break;
+        case DOUBLE_TAP: register_code16(KC_LEFT); register_code16(KC_LEFT); break;
         case DOUBLE_SINGLE_TAP: tap_code16(KC_LEFT); register_code16(KC_LEFT);
     }
 }
@@ -228,7 +236,8 @@ void dance_0_reset(qk_tap_dance_state_t *state, void *user_data) {
     wait_ms(10);
     switch (dance_state[0].step) {
         case SINGLE_TAP: unregister_code16(KC_LEFT); break;
-        case DOUBLE_TAP: unregister_code16(KC_HOME); break;
+        case SINGLE_HOLD: unregister_code16(KC_HOME); break;
+        case DOUBLE_TAP: unregister_code16(KC_LEFT); break;
         case DOUBLE_SINGLE_TAP: unregister_code16(KC_LEFT); break;
     }
     dance_state[0].step = 0;
@@ -252,7 +261,8 @@ void dance_1_finished(qk_tap_dance_state_t *state, void *user_data) {
     dance_state[1].step = dance_step(state);
     switch (dance_state[1].step) {
         case SINGLE_TAP: register_code16(KC_RIGHT); break;
-        case DOUBLE_TAP: register_code16(KC_END); break;
+        case SINGLE_HOLD: register_code16(KC_END); break;
+        case DOUBLE_TAP: register_code16(KC_RIGHT); register_code16(KC_RIGHT); break;
         case DOUBLE_SINGLE_TAP: tap_code16(KC_RIGHT); register_code16(KC_RIGHT);
     }
 }
@@ -261,7 +271,8 @@ void dance_1_reset(qk_tap_dance_state_t *state, void *user_data) {
     wait_ms(10);
     switch (dance_state[1].step) {
         case SINGLE_TAP: unregister_code16(KC_RIGHT); break;
-        case DOUBLE_TAP: unregister_code16(KC_END); break;
+        case SINGLE_HOLD: unregister_code16(KC_END); break;
+        case DOUBLE_TAP: unregister_code16(KC_RIGHT); break;
         case DOUBLE_SINGLE_TAP: unregister_code16(KC_RIGHT); break;
     }
     dance_state[1].step = 0;
@@ -271,4 +282,3 @@ qk_tap_dance_action_t tap_dance_actions[] = {
         [DANCE_0] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_0, dance_0_finished, dance_0_reset),
         [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
 };
-
