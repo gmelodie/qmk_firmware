@@ -68,7 +68,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_ESCAPE,      KC_1,           KC_2,           KC_3,           KC_4,           KC_5,           TG(3),                                          TG(3),          KC_6,           KC_7,           KC_8,           KC_9,           KC_0,           KC_PSCREEN,
     KC_TAB,         KC_COMMA,           KC_DOT,           KC_P,           KC_Y,           KC_F,           KC_TRANSPARENT,                                 KC_TRANSPARENT, KC_G,           KC_C,           KC_R,           KC_L,           KC_SLASH,           KC_TRANSPARENT,
     KC_BSPACE,      KC_A,           KC_O,           KC_E,           KC_U,           KC_I,           KC_HYPR,                                                                        KC_MEH,         KC_D,           KC_H,           KC_T,           KC_N,           KC_S,      KC_ESCAPE,
-    KC_TRANSPARENT, KC_LCTRL,KC_Q,           KC_J,           MT(MOD_LSFT, KC_K),KC_X,                                           KC_B,           MT(MOD_LSFT, KC_M),KC_W,       KC_V,         MT(MOD_RCTL, KC_Z),KC_TRANSPARENT,
+    KC_TRANSPARENT, MT(MOD_LCTL, KC_SCOLON),KC_Q,           KC_J,           MT(MOD_LSFT, KC_K),KC_X,                                           KC_B,           MT(MOD_LSFT, KC_M),KC_W,       KC_V,         MT(MOD_RCTL, KC_Z),KC_TRANSPARENT,
     KC_TRANSPARENT, WEBUSB_PAIR,    KC_TRANSPARENT, KC_LALT,        KC_TRANSPARENT, LALT(KC_F4),                                                                                                    KC_LGUI,        KC_LEFT,        KC_RIGHT,       KC_TRANSPARENT, KC_TRANSPARENT, KC_CAPSLOCK,
     KC_SPACE,       OSL(2),         KC_TRANSPARENT,                 OSM(MOD_LALT),  OSL(1),         KC_ENTER
   ),
